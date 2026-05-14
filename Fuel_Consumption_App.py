@@ -131,24 +131,34 @@ elif menu == "Calculate Trip":
 
     st.subheader("🧮 Trip Calculator")
 
-car_list = list(car_database.keys())
+    # -------------------------
+    # CHECK DATABASE
+    # -------------------------
+    if len(car_database) == 0:
 
-if len(car_list) == 0:
+        st.warning("⚠️ No cars in database.")
+        st.stop()
 
-    st.warning("⚠️ No cars in database.")
-    st.stop()
+    # -------------------------
+    # CAR LIST
+    # -------------------------
+    car_list = list(car_database.keys())
 
-selected_car = st.selectbox(
-    "Select Car",
-    car_list
-)
+    selected_car = st.selectbox(
+        "Select Car",
+        options=car_list,
+        key="car_select"
+    )
 
-car = car_database.get(selected_car)
+    # -------------------------
+    # SAFE FETCH
+    # -------------------------
+    if selected_car not in car_database:
 
-if car is None:
+        st.error("Selected car not found.")
+        st.stop()
 
-    st.error("Selected car not found.")
-    st.stop()
+    car = car_database[selected_car]
 
     kmpl = car["km_per_liter"]
     tank = car["tank_capacity"]
@@ -156,34 +166,85 @@ if car is None:
     st.write(f"Fuel Economy: **{kmpl} km/L**")
     st.write(f"Tank Capacity: **{tank} L**")
 
-    current_fuel = st.number_input("Current Fuel (L)", min_value=0.0, step=0.1)
-    distance = st.number_input("Distance to Travel (km)", min_value=0.0, step=1.0)
+    st.divider()
 
+    # -------------------------
+    # INPUTS
+    # -------------------------
+    current_fuel = st.number_input(
+        "Current Fuel (L)",
+        min_value=0.0,
+        step=0.1
+    )
+
+    distance = st.number_input(
+        "Distance to Travel (km)",
+        min_value=0.0,
+        step=1.0
+    )
+
+    # -------------------------
+    # SAFETY MARGIN
+    # -------------------------
     safety_margin = 0.90
     adjusted_kmpl = kmpl * safety_margin
 
+    # -------------------------
+    # CALCULATE BUTTON
+    # -------------------------
     if st.button("Calculate"):
 
         max_distance = current_fuel * adjusted_kmpl
+
         fuel_needed = distance / adjusted_kmpl
+
         remaining = current_fuel - fuel_needed
 
-        current_pct = (current_fuel / tank) * 100
-        used_pct = (fuel_needed / tank) * 100
-        remaining_pct = (remaining / tank) * 100
+        current_pct = (
+            current_fuel / tank
+        ) * 100
+
+        used_pct = (
+            fuel_needed / tank
+        ) * 100
+
+        remaining_pct = (
+            remaining / tank
+        ) * 100
 
         st.subheader("📊 Results")
 
-        st.write(f"Adjusted Fuel Economy: **{adjusted_kmpl:.2f} km/L**")
-        st.write(f"Max Distance: **{max_distance:.2f} km**")
+        st.write(
+            f"Adjusted Fuel Economy: "
+            f"**{adjusted_kmpl:.2f} km/L**"
+        )
 
-        st.write(f"Fuel Needed: **{fuel_needed:.2f} L ({used_pct:.1f}%)**")
-        st.write(f"Current Fuel: **{current_fuel:.2f} L ({current_pct:.1f}%)**")
-        st.write(f"Remaining Fuel: **{remaining:.2f} L ({remaining_pct:.1f}%)**")
+        st.write(
+            f"Maximum Safe Distance: "
+            f"**{max_distance:.2f} km**"
+        )
+
+        st.write(
+            f"Fuel Needed: "
+            f"**{fuel_needed:.2f} L ({used_pct:.1f}%)**"
+        )
+
+        st.write(
+            f"Current Fuel: "
+            f"**{current_fuel:.2f} L ({current_pct:.1f}%)**"
+        )
+
+        st.write(
+            f"Remaining Fuel: "
+            f"**{remaining:.2f} L ({remaining_pct:.1f}%)**"
+        )
 
         st.divider()
 
         if remaining >= 0:
+
             st.success("✅ SAFE TO TRAVEL")
+
         else:
+
             st.error("❌ NOT SAFE TO TRAVEL")
