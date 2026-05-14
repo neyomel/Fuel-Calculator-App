@@ -74,26 +74,39 @@ if menu == "View Database":
 # ADD CAR
 # =========================
 elif menu == "Add Car":
+
     st.subheader("➕ Add New Car")
 
     name = st.text_input("Car Model & Year")
 
-    kmpl = st.number_input("Fuel Economy (km/L)", min_value=0.0, step=0.1)
+    kmpl = st.number_input(
+        "Fuel Economy (km/L)",
+        min_value=0.0,
+        step=0.1
+    )
 
-    tank = st.number_input("Tank Capacity (L)", min_value=0.0, step=1.0)
+    tank = st.number_input(
+        "Tank Capacity (L)",
+        min_value=0.0,
+        step=1.0
+    )
 
-   if st.button("Add Car"):
+    if st.button("Add Car"):
 
-    if name:
-        car_database[name] = {
-            "km_per_liter": kmpl,
-            "tank_capacity": tank
-        }
+        if name:
 
-        save_database(car_database)
+            car_database[name] = {
+                "km_per_liter": kmpl,
+                "tank_capacity": tank
+            }
 
-        st.success(f"{name} added successfully!")
+            save_database(car_database)
 
+            st.success(f"{name} added successfully!")
+
+        else:
+            st.error("Please enter car name")
+            
 # =========================
 # DELETE CAR
 # =========================
