@@ -2,327 +2,139 @@ import streamlit as st
 
 st.title("🚗 Fuel Calculator App")
 st.write("If you can see this, Streamlit is working.")
-# =========================================================
-# ADVANCED FUEL RANGE CALCULATOR
-# =========================================================
-# FEATURES:
-# - Welcome menu
-# - Built-in car database
-# - Add new cars
-# - Delete cars from database
-# - View database
-# - Safety margin / margin of error
-# - Fuel percentage calculations
-# - Remaining fuel calculations
-# =========================================================
+import streamlit as st
 
-car_database = {
+# =========================
+# PAGE CONFIG (makes it less plain)
+# =========================
+st.set_page_config(
+    page_title="Fuel Calculator",
+    page_icon="🚗",
+    layout="centered"
+)
 
-    "2011 Hyundai i10": {
-        "km_per_liter": 16,
-        "tank_capacity": 35
-    },
+# =========================
+# TITLE
+# =========================
+st.title("🚗 Advanced Fuel Range Calculator")
+st.write("Plan your trips safely with fuel estimation + margin of error")
 
-    "2015 Toyota Vios": {
-        "km_per_liter": 14,
-        "tank_capacity": 42
-    },
-
-    "2018 Honda Civic": {
-        "km_per_liter": 12,
-        "tank_capacity": 47
-    },
-
-    "2020 Mitsubishi Mirage": {
-        "km_per_liter": 18,
-        "tank_capacity": 35
+# =========================
+# SESSION DATABASE (important for Streamlit)
+# =========================
+if "car_database" not in st.session_state:
+    st.session_state.car_database = {
+        "2011 Hyundai i10": {"km_per_liter": 16, "tank_capacity": 35},
+        "2015 Toyota Vios": {"km_per_liter": 14, "tank_capacity": 42},
+        "2018 Honda Civic": {"km_per_liter": 12, "tank_capacity": 47},
+        "2020 Mitsubishi Mirage": {"km_per_liter": 18, "tank_capacity": 35},
     }
-}
 
+car_database = st.session_state.car_database
 
-# =========================================================
-# DISPLAY DATABASE
-# =========================================================
+# =========================
+# SIDEBAR MENU (replaces your terminal menu)
+# =========================
+menu = st.sidebar.selectbox(
+    "📌 Menu",
+    ["Calculate Trip", "View Database", "Add Car", "Delete Car"]
+)
 
-def display_database():
+# =========================
+# VIEW DATABASE
+# =========================
+if menu == "View Database":
+    st.subheader("📊 Car Database")
 
-    if len(car_database) == 0:
-        print("\n⚠️ No cars in database.\n")
-        return
+    for car, data in car_database.items():
+        st.write(f"**{car}**")
+        st.write(f"- Fuel Economy: {data['km_per_liter']} km/L")
+        st.write(f"- Tank Capacity: {data['tank_capacity']} L")
+        st.divider()
 
-    print("\n========== CURRENT CAR DATABASE ==========")
-
-    for index, car in enumerate(car_database, start=1):
-
-        data = car_database[car]
-
-        print(f"{index}. {car}")
-
-        print(f"   Fuel Economy : "
-              f"{data['km_per_liter']} km/L")
-
-        print(f"   Tank Capacity: "
-              f"{data['tank_capacity']} L\n")
-
-
-# =========================================================
+# =========================
 # ADD CAR
-# =========================================================
+# =========================
+elif menu == "Add Car":
+    st.subheader("➕ Add New Car")
 
-def add_car():
+    name = st.text_input("Car Model & Year")
 
-    print("\n========== ADD NEW CAR ==========")
+    kmpl = st.number_input("Fuel Economy (km/L)", min_value=0.0, step=0.1)
 
-    car_name = input("Enter car model and year: ")
+    tank = st.number_input("Tank Capacity (L)", min_value=0.0, step=1.0)
 
-    km_per_liter = float(
-        input("Enter fuel economy (km/L): ")
-    )
+    if st.button("Add Car"):
 
-    tank_capacity = float(
-        input("Enter tank capacity (L): ")
-    )
+        if name:
+            car_database[name] = {
+                "km_per_liter": kmpl,
+                "tank_capacity": tank
+            }
+            st.success(f"{name} added successfully!")
+        else:
+            st.error("Please enter car name")
 
-    car_database[car_name] = {
-        "km_per_liter": km_per_liter,
-        "tank_capacity": tank_capacity
-    }
-
-    print("\n✅ Car added successfully!\n")
-
-
-# =========================================================
+# =========================
 # DELETE CAR
-# =========================================================
+# =========================
+elif menu == "Delete Car":
+    st.subheader("🗑️ Delete Car")
 
-def delete_car():
+    car_list = list(car_database.keys())
 
-    if len(car_database) == 0:
-        print("\n⚠️ Database is empty.\n")
-        return
+    selected = st.selectbox("Select car to delete", car_list)
 
-    print("\n========== DELETE CAR ==========")
+    if st.button("Delete"):
+        del car_database[selected]
+        st.warning(f"{selected} deleted")
 
-    display_database()
-
-    try:
-
-        choice = int(
-            input("Select car number to delete: ")
-        )
-
-        car_names = list(car_database.keys())
-
-        selected_car = car_names[choice - 1]
-
-        confirm = input(
-            f"Are you sure you want to delete "
-            f"{selected_car}? (y/n): "
-        ).lower()
-
-        if confirm == "y":
-
-            del car_database[selected_car]
-
-            print(f"\n✅ {selected_car} deleted successfully.\n")
-
-        else:
-            print("\nDeletion cancelled.\n")
-
-    except:
-        print("\n⚠️ Invalid selection.\n")
-
-
-# =========================================================
+# =========================
 # CALCULATE TRIP
-# =========================================================
+# =========================
+elif menu == "Calculate Trip":
 
-def calculate_trip():
+    st.subheader("🧮 Trip Calculator")
 
-    if len(car_database) == 0:
-        print("\n⚠️ No cars in database.\n")
-        return
+    car_list = list(car_database.keys())
+    selected_car = st.selectbox("Select Car", car_list)
 
-    display_database()
+    car = car_database[selected_car]
 
-    try:
+    kmpl = car["km_per_liter"]
+    tank = car["tank_capacity"]
 
-        # Select car
-        choice = int(
-            input("Select a car number: ")
-        )
+    st.write(f"Fuel Economy: **{kmpl} km/L**")
+    st.write(f"Tank Capacity: **{tank} L**")
 
-        car_names = list(car_database.keys())
+    current_fuel = st.number_input("Current Fuel (L)", min_value=0.0, step=0.1)
+    distance = st.number_input("Distance to Travel (km)", min_value=0.0, step=1.0)
 
-        selected_car = car_names[choice - 1]
+    safety_margin = 0.90
+    adjusted_kmpl = kmpl * safety_margin
 
-        car = car_database[selected_car]
+    if st.button("Calculate"):
 
-        km_per_liter = car["km_per_liter"]
+        max_distance = current_fuel * adjusted_kmpl
+        fuel_needed = distance / adjusted_kmpl
+        remaining = current_fuel - fuel_needed
 
-        tank_capacity = car["tank_capacity"]
+        current_pct = (current_fuel / tank) * 100
+        used_pct = (fuel_needed / tank) * 100
+        remaining_pct = (remaining / tank) * 100
 
-        # Current fuel
-        current_fuel = float(
-            input("\nEnter current fuel (L): ")
-        )
+        st.subheader("📊 Results")
 
-        # Distance needed
-        distance_needed = float(
-            input("Enter distance to travel (km): ")
-        )
+        st.write(f"Adjusted Fuel Economy: **{adjusted_kmpl:.2f} km/L**")
+        st.write(f"Max Distance: **{max_distance:.2f} km**")
 
-        # =================================================
-        # SAFETY MARGIN
-        # =================================================
-        # Reduce fuel economy by 10%
-        # to account for:
-        # - traffic
-        # - aircon
-        # - bad roads
-        # - driving habits
-        # =================================================
+        st.write(f"Fuel Needed: **{fuel_needed:.2f} L ({used_pct:.1f}%)**")
+        st.write(f"Current Fuel: **{current_fuel:.2f} L ({current_pct:.1f}%)**")
+        st.write(f"Remaining Fuel: **{remaining:.2f} L ({remaining_pct:.1f}%)**")
 
-        safety_margin = 0.90
+        st.divider()
 
-        adjusted_km_per_liter = (
-            km_per_liter * safety_margin
-        )
-
-        # =================================================
-        # CALCULATIONS
-        # =================================================
-
-        max_distance = (
-            current_fuel *
-            adjusted_km_per_liter
-        )
-
-        fuel_needed = (
-            distance_needed /
-            adjusted_km_per_liter
-        )
-
-        remaining_fuel = (
-            current_fuel - fuel_needed
-        )
-
-        # =================================================
-        # PERCENTAGES
-        # =================================================
-
-        current_fuel_percent = (
-            current_fuel / tank_capacity
-        ) * 100
-
-        fuel_used_percent = (
-            fuel_needed / tank_capacity
-        ) * 100
-
-        remaining_percent = (
-            remaining_fuel / tank_capacity
-        ) * 100
-
-        # =================================================
-        # OUTPUT
-        # =================================================
-
-        print("\n=================================================")
-        print(f"CAR: {selected_car}")
-        print("=================================================")
-
-        print(f"Official Fuel Economy : "
-              f"{km_per_liter:.2f} km/L")
-
-        print(f"Safety Adjusted Economy (-10%) : "
-              f"{adjusted_km_per_liter:.2f} km/L")
-
-        print(f"\nTank Capacity : "
-              f"{tank_capacity:.2f} L")
-
-        print(f"Current Fuel : "
-              f"{current_fuel:.2f} L "
-              f"({current_fuel_percent:.2f}%)")
-
-        print(f"\nDistance Needed : "
-              f"{distance_needed:.2f} km")
-
-        print(f"Estimated Fuel Needed : "
-              f"{fuel_needed:.2f} L "
-              f"({fuel_used_percent:.2f}%)")
-
-        print(f"\nEstimated Remaining Fuel : "
-              f"{remaining_fuel:.2f} L "
-              f"({remaining_percent:.2f}%)")
-
-        print(f"Maximum Safe Distance : "
-              f"{max_distance:.2f} km")
-
-        # =================================================
-        # FINAL RESULT
-        # =================================================
-
-        print("\n=================================================")
-
-        if remaining_fuel >= 0:
-
-            print("✅ SAFE TO TRAVEL")
-            print("You should reach your destination safely.")
-
+        if remaining >= 0:
+            st.success("✅ SAFE TO TRAVEL")
         else:
-
-            print("❌ NOT SAFE TO TRAVEL")
-            print("You may run out of fuel before arrival.")
-
-        print("=================================================\n")
-
-    except:
-        print("\n⚠️ Invalid input.\n")
-
-
-# =========================================================
-# MAIN PROGRAM LOOP
-# =========================================================
-
-while True:
-
-    print("=================================================")
-    print("         ADVANCED FUEL RANGE CALCULATOR")
-    print("=================================================")
-
-    print("1. Calculate Trip")
-    print("2. Add Car To Database")
-    print("3. View Car Database")
-    print("4. Delete Car From Database")
-    print("5. Exit")
-
-    choice = input("\nSelect an option: ")
-
-    # =====================================================
-    # MENU OPTIONS
-    # =====================================================
-
-    if choice == "1":
-
-        calculate_trip()
-
-    elif choice == "2":
-
-        add_car()
-
-    elif choice == "3":
-
-        display_database()
-
-    elif choice == "4":
-
-        delete_car()
-
-    elif choice == "5":
-
-        print("\nThank you for using the program!")
-        break
-
-    else:
-
-        print("\n⚠️ Invalid choice. Please try again.\n")
+            st.error("❌ NOT SAFE TO TRAVEL")
