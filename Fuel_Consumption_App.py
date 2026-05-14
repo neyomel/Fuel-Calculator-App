@@ -1,4 +1,7 @@
+import streamlit as st
 
+st.title("🚗 Fuel Calculator App")
+st.write("If you can see this, Streamlit is working.")
 # =========================================================
 # ADVANCED FUEL RANGE CALCULATOR
 # =========================================================
