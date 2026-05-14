@@ -1,0 +1,18 @@
+{
+    "2011 Hyundai i10": {
+        "km_per_liter": 16,
+        "tank_capacity": 35
+    },
+    "2015 Toyota Vios": {
+        "km_per_liter": 14,
+        "tank_capacity": 42
+    },
+    "2018 Honda Civic": {
+        "km_per_liter": 12,
+        "tank_capacity": 47
+    },
+    "2020 Mitsubishi Mirage": {
+        "km_per_liter": 18,
+        "tank_capacity": 35
+    }
+}
