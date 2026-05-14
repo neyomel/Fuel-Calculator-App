@@ -131,10 +131,24 @@ elif menu == "Calculate Trip":
 
     st.subheader("🧮 Trip Calculator")
 
-    car_list = list(car_database.keys())
-    selected_car = st.selectbox("Select Car", car_list)
+car_list = list(car_database.keys())
 
-    car = car_database[selected_car]
+if len(car_list) == 0:
+
+    st.warning("⚠️ No cars in database.")
+    st.stop()
+
+selected_car = st.selectbox(
+    "Select Car",
+    car_list
+)
+
+car = car_database.get(selected_car)
+
+if car is None:
+
+    st.error("Selected car not found.")
+    st.stop()
 
     kmpl = car["km_per_liter"]
     tank = car["tank_capacity"]
