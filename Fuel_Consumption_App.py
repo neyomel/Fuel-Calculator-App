@@ -22,15 +22,33 @@ st.write("Plan your trips safely with fuel estimation + margin of error")
 # =========================
 # SESSION DATABASE (important for Streamlit)
 # =========================
-if "car_database" not in st.session_state:
-    st.session_state.car_database = {
-        "2011 Hyundai i10": {"km_per_liter": 16, "tank_capacity": 35},
-        "2015 Toyota Vios": {"km_per_liter": 14, "tank_capacity": 42},
-        "2018 Honda Civic": {"km_per_liter": 12, "tank_capacity": 47},
-        "2020 Mitsubishi Mirage": {"km_per_liter": 18, "tank_capacity": 35},
-    }
+import json
+import os
 
-car_database = st.session_state.car_database
+# =========================
+# LOAD DATABASE
+# =========================
+DATABASE_FILE = "cars.json"
+
+def load_database():
+
+    if os.path.exists(DATABASE_FILE):
+
+        with open(DATABASE_FILE, "r") as file:
+            return json.load(file)
+
+    return {}
+
+# =========================
+# SAVE DATABASE
+# =========================
+def save_database(database):
+
+    with open(DATABASE_FILE, "w") as file:
+        json.dump(database, file, indent=4)
+
+# Load database
+car_database = load_database()
 
 # =========================
 # SIDEBAR MENU (replaces your terminal menu)
@@ -64,16 +82,17 @@ elif menu == "Add Car":
 
     tank = st.number_input("Tank Capacity (L)", min_value=0.0, step=1.0)
 
-    if st.button("Add Car"):
+   if st.button("Add Car"):
 
-        if name:
-            car_database[name] = {
-                "km_per_liter": kmpl,
-                "tank_capacity": tank
-            }
-            st.success(f"{name} added successfully!")
-        else:
-            st.error("Please enter car name")
+    if name:
+        car_database[name] = {
+            "km_per_liter": kmpl,
+            "tank_capacity": tank
+        }
+
+        save_database(car_database)
+
+        st.success(f"{name} added successfully!")
 
 # =========================
 # DELETE CAR
@@ -85,10 +104,13 @@ elif menu == "Delete Car":
 
     selected = st.selectbox("Select car to delete", car_list)
 
-    if st.button("Delete"):
-        del car_database[selected]
-        st.warning(f"{selected} deleted")
+if st.button("Delete"):
 
+    del car_database[selected]
+
+    save_database(car_database)
+
+    st.warning(f"{selected} deleted")
 # =========================
 # CALCULATE TRIP
 # =========================
